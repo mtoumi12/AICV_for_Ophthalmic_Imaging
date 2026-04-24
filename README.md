@@ -3,19 +3,44 @@
 Demonstration pipelines for two core computer-vision tasks performed at
 ophthalmic image reading centers that support multicenter clinical trials:
 
-1. **Corneal endothelial cell morphometry** — segmenting individual endothelial
+1. **Corneal endothelial cell morphometry** segmenting individual endothelial
    cells in specular microscopy images and computing the three clinical metrics
    used in cornea reading: **ECD** (cell density), **CV** (coefficient of
    variation of cell area), and **HEX%** (percent hexagonal cells).
 
-2. **Retinal disease classification from color fundus photography** — a
+2. **Retinal disease classification from color fundus photography** a
    four-class classifier (Normal / DR / AMD / DME) with standard fundus
    preprocessing (circular crop, green-channel CLAHE, ImageNet normalization).
 
 Each module is self-contained: it **generates its own synthetic data**,
 preprocesses it, trains a model, and reports metrics + a visual demo. No
-private clinical data is used. The goal is illustrative — to show the full
+private clinical data is used. The goal is illustrative, to show the full
 pipeline a reading center would deploy, end to end.
+
+## Sample data
+
+### Corneal endothelium (specular microscopy)
+
+Synthetic specular-microscopy images produced by `cornea/generate_data.py`.
+Varying seed-spacing and jitter simulates a realistic range of clinical
+morphometry — from healthy, uniform hexagons to stressed endothelium with
+polymegathism (high CV) and pleomorphism (low HEX%):
+
+![Cornea samples](docs/images/cornea_samples.png)
+
+Each image comes with a ground-truth boundary mask that the U-Net learns to
+reproduce:
+
+![Cornea input and boundary mask](docs/images/cornea_input_and_mask.png)
+
+### Retina (color fundus)
+
+Synthetic color fundus images produced by `retina/generate_data.py`, one per
+class. Red dots = microaneurysms / hemorrhages (DR). Pale-yellow small
+drusen near the macula (AMD). Bright-yellow hard-exudate clusters near the
+macula (DME):
+
+![Retina samples](docs/images/retina_samples.png)
 
 ## Repository layout
 
@@ -60,7 +85,7 @@ each writes a demo figure and a metrics file to an `outputs/` directory.
   seed jitter. Standard surrogate for specular microscopy of the corneal
   endothelium.
 - **Model.** U-Net (4 down / 4 up, 16 base channels) trained on a combined
-  **BCE + Dice** loss — Dice is essential because boundary pixels are only
+  **BCE + Dice** loss, Dice is essential because boundary pixels are only
   ~5% of the image.
 - **Instance segmentation.** Boundary probability → distance transform →
   local-maxima seeds → **watershed** → per-cell label map. Cells touching the
